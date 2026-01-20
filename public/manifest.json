@@ -1,0 +1,27 @@
+{
+  "name": "VoiceLearn - English Learning Game",
+  "short_name": "VoiceLearn",
+  "description": "Master English through voice with an interactive game that combines camera, speech recognition, and fun challenges!",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#3b82f6",
+  "theme_color": "#3b82f6",
+  "orientation": "portrait",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["education", "games"],
+  "permissions": ["camera", "microphone"]
+}

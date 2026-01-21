@@ -21,10 +21,13 @@ export const useSpeechRecognition = (): UseSpeechRecognitionReturn => {
   const recognitionRef = useRef<any>(null);
   const isListeningRef = useRef(false);
   const shouldBeListeningRef = useRef(false); // Track intent to listen
+  const restartAttemptsRef = useRef(0); // Track restart attempts to prevent infinite loop
+  const maxRestartAttempts = 3;
 
   const isSupported = 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
 
   useEffect(() => {
+    console.log('useSpeechRecognition useEffect init, isSupported:', isSupported);
     if (!isSupported) {
       setError('Speech recognition is not supported in this browser');
       return;
@@ -32,6 +35,7 @@ export const useSpeechRecognition = (): UseSpeechRecognitionReturn => {
 
     const SpeechRecognition = window.webkitSpeechRecognition || window.SpeechRecognition;
     const recognition = new SpeechRecognition();
+    console.log('SpeechRecognition instance created');
 
     recognition.lang = SPEECH_CONFIG.lang;
     recognition.continuous = SPEECH_CONFIG.continuous;
@@ -39,12 +43,17 @@ export const useSpeechRecognition = (): UseSpeechRecognitionReturn => {
     recognition.maxAlternatives = SPEECH_CONFIG.maxAlternatives;
 
     recognition.onstart = () => {
+      console.log('recognition.onstart fired');
       isListeningRef.current = true;
       setIsListening(true);
       setError(null);
+      // Don't reset counter here - onstart fires even when immediately aborted
     };
 
     recognition.onresult = (event: any) => {
+      // Reset restart attempts on successful result
+      restartAttemptsRef.current = 0;
+
       let interimText = '';
       let finalText = '';
 
@@ -68,6 +77,7 @@ export const useSpeechRecognition = (): UseSpeechRecognitionReturn => {
     };
 
     recognition.onerror = (event: any) => {
+      console.log('recognition.onerror:', event.error);
       if (event.error === 'aborted') {
         return;
       }
@@ -78,17 +88,20 @@ export const useSpeechRecognition = (): UseSpeechRecognitionReturn => {
     };
 
     recognition.onend = () => {
+      console.log('recognition.onend, shouldBeListening:', shouldBeListeningRef.current, 'attempts:', restartAttemptsRef.current);
       isListeningRef.current = false;
       setIsListening(false);
 
-      // Auto-restart if we should still be listening
-      if (shouldBeListeningRef.current) {
+      // Auto-restart if we should still be listening (with attempt limit)
+      if (shouldBeListeningRef.current && restartAttemptsRef.current < maxRestartAttempts) {
+        restartAttemptsRef.current += 1;
+        console.log('Auto-restarting, attempt:', restartAttemptsRef.current);
         setTimeout(() => {
           if (shouldBeListeningRef.current && recognitionRef.current) {
             try {
               recognitionRef.current.start();
-            } catch {
-              // Ignore errors
+            } catch (e) {
+              console.log('Auto-restart error:', e);
             }
           }
         }, 100);
@@ -98,9 +111,11 @@ export const useSpeechRecognition = (): UseSpeechRecognitionReturn => {
     recognitionRef.current = recognition;
 
     return () => {
+      console.log('useSpeechRecognition cleanup');
+      shouldBeListeningRef.current = false; // Prevent auto-restart after cleanup
       if (recognitionRef.current) {
         try {
-          recognitionRef.current.stop();
+          recognitionRef.current.abort(); // Use abort instead of stop
         } catch {
           // Ignore errors on cleanup
         }
@@ -109,15 +124,18 @@ export const useSpeechRecognition = (): UseSpeechRecognitionReturn => {
   }, [isSupported]);
 
   const startListening = useCallback(() => {
+    console.log('startListening called, isListening:', isListeningRef.current, 'recognition:', !!recognitionRef.current);
     shouldBeListeningRef.current = true;
+    restartAttemptsRef.current = 0;
     if (recognitionRef.current && !isListeningRef.current) {
       try {
         setTranscript('');
         setInterimTranscript('');
         setError(null);
         recognitionRef.current.start();
-      } catch {
-        // Already started, ignore
+        console.log('recognition.start() called');
+      } catch (e) {
+        console.log('startListening error:', e);
       }
     }
   }, []);

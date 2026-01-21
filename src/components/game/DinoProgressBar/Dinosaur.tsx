@@ -11,15 +11,18 @@ interface DinosaurComponentProps {
 export const Dinosaur: React.FC<DinosaurComponentProps> = ({ state }) => {
   const [walkFrame, setWalkFrame] = useState(0);
 
-  // Walking/eating leg animation
+  // Leg animation - only when not idle
   useEffect(() => {
-    if (state === 'walking' || state === 'eating') {
-      const interval = setInterval(() => {
-        setWalkFrame((prev) => (prev === 0 ? 1 : 0));
-      }, DINO_CONFIG.walkCycleDuration);
-
-      return () => clearInterval(interval);
+    if (state === 'idle') {
+      setWalkFrame(0);
+      return;
     }
+
+    const interval = setInterval(() => {
+      setWalkFrame((prev) => (prev === 0 ? 1 : 0));
+    }, DINO_CONFIG.walkCycleDuration);
+
+    return () => clearInterval(interval);
   }, [state]);
 
   // Calculate animation based on state
@@ -38,6 +41,11 @@ export const Dinosaur: React.FC<DinosaurComponentProps> = ({ state }) => {
         return {
           y: [0, -8, 0],
           scale: [1, 1.05, 1],
+        };
+      case 'watching':
+        return {
+          y: [0, 3, 0],
+          rotate: [0, 2, 0],
         };
       default:
         return {};
@@ -58,6 +66,11 @@ export const Dinosaur: React.FC<DinosaurComponentProps> = ({ state }) => {
         };
       case 'eating':
         return { duration: DINO_CONFIG.eatDuration / 1000, repeat: 1 };
+      case 'watching':
+        return {
+          duration: 0.8,
+          ease: 'easeInOut' as const,
+        };
       default:
         return { duration: 0.1 };
     }
@@ -67,7 +80,7 @@ export const Dinosaur: React.FC<DinosaurComponentProps> = ({ state }) => {
     <div
       style={{
         position: 'absolute',
-        bottom: '7%',
+        bottom: '17%',
         left: '0',
         transform: 'scale(0.7)',
         transformOrigin: 'bottom center',

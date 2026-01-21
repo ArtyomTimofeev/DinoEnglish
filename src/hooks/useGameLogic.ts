@@ -2,17 +2,20 @@ import { useState, useCallback, useEffect } from 'react';
 import type { GameState, AnswerResult, Word } from '@/types/game.types';
 import { WORD_DATASET, shuffleWords } from '@/data/wordDataset';
 import { validateAnswer } from '@/utils/validation';
-import { GAME_CONFIG } from '@/constants/gameConfig';
+import { GAME_CONFIG, DINO_CONFIG, LEVEL_POINTS } from '@/constants/gameConfig';
 
 interface UseGameLogicReturn {
   gameState: GameState;
   currentWord: Word;
   words: Word[];
   isCurrentWordComplete: boolean;
+  isSkipping: boolean;
+  levelScore: number;
   submitAnswer: (userAnswer: string) => boolean;
   nextWord: () => void;
   resetGame: () => void;
   startGame: () => void;
+  skipWord: () => void;
 }
 
 const initialGameState: GameState = {
@@ -29,6 +32,8 @@ export const useGameLogic = (): UseGameLogicReturn => {
   const [words, setWords] = useState<Word[]>([]);
   const [gameState, setGameState] = useState<GameState>(initialGameState);
   const [isCurrentWordComplete, setIsCurrentWordComplete] = useState(false);
+  const [isSkipping, setIsSkipping] = useState(false);
+  const [levelScore, setLevelScore] = useState(0);
 
   // Initialize words on mount
   useEffect(() => {
@@ -45,6 +50,8 @@ export const useGameLogic = (): UseGameLogicReturn => {
       isGameComplete: false,
     });
     setIsCurrentWordComplete(false);
+    setIsSkipping(false);
+    setLevelScore(0);
   }, []);
 
   const submitAnswer = useCallback(
@@ -64,6 +71,10 @@ export const useGameLogic = (): UseGameLogicReturn => {
           timeElapsed: 0, // No longer tracking time
         };
 
+        // Calculate level points based on current animal's CEFR level
+        const currentLevel = DINO_CONFIG.animalLevels[gameState.currentWordIndex];
+        const levelPoints = LEVEL_POINTS[currentLevel] || 1;
+
         setGameState((prev) => {
           const newStreak = prev.currentStreak + 1;
           const newMaxStreak = Math.max(prev.maxStreak, newStreak);
@@ -78,6 +89,7 @@ export const useGameLogic = (): UseGameLogicReturn => {
           };
         });
 
+        setLevelScore((prev) => prev + levelPoints);
         setIsCurrentWordComplete(true);
       }
       // On wrong answer, don't record anything - user will retry
@@ -89,6 +101,7 @@ export const useGameLogic = (): UseGameLogicReturn => {
 
   const nextWord = useCallback(() => {
     setIsCurrentWordComplete(false);
+    setIsSkipping(false);
     setGameState((prev) => {
       const nextIndex = prev.currentWordIndex + 1;
       const isComplete = nextIndex >= GAME_CONFIG.totalWords;
@@ -102,6 +115,14 @@ export const useGameLogic = (): UseGameLogicReturn => {
     });
   }, []);
 
+  const skipWord = useCallback(() => {
+    if (!gameState.isGameActive || gameState.isGameComplete || isCurrentWordComplete || isSkipping) {
+      return;
+    }
+    setIsSkipping(true);
+    // Don't update score or levelScore - skipped words don't count
+  }, [gameState.isGameActive, gameState.isGameComplete, isCurrentWordComplete, isSkipping]);
+
   const resetGame = useCallback(() => {
     setWords(shuffleWords(WORD_DATASET));
     setGameState(initialGameState);
@@ -113,9 +134,12 @@ export const useGameLogic = (): UseGameLogicReturn => {
     currentWord,
     words,
     isCurrentWordComplete,
+    isSkipping,
+    levelScore,
     submitAnswer,
     nextWord,
     resetGame,
     startGame,
+    skipWord,
   };
 };

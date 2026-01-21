@@ -23,6 +23,7 @@ export const DinoSprite: React.FC<DinoSpriteProps> = ({ state, walkFrame }) => {
   let frameSrc: string;
 
   if (state === 'idle') {
+    // Static idle pose
     frameSrc = FRAMES.idle;
   } else if (state === 'eating') {
     // Alternate between duck frames for eating animation

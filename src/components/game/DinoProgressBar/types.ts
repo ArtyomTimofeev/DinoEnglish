@@ -1,15 +1,17 @@
-export type DinoState = 'idle' | 'walking' | 'eating' | 'bumping' | 'recoiling';
+export type DinoState = 'idle' | 'walking' | 'eating' | 'bumping' | 'recoiling' | 'watching';
 
 export type AnimalType =
-  | 'hedgehog'
-  | 'mouse'
-  | 'rabbit'
-  | 'fox'
-  | 'dog'
-  | 'deer'
-  | 'horse'
-  | 'bear'
-  | 'rhino'
+  | 'crab'
+  | 'pig'
+  | 'skunk'
+  | 'monkey'
+  | 'eagle'
+  | 'wolf'
+  | 'kangaroo'
+  | 'cow'
+  | 'orangutan'
+  | 'buffalo'
+  | 'caveBear'
   | 'elephant';
 
 export interface AnimalData {
@@ -23,7 +25,14 @@ export interface DinoProgressBarProps {
   currentWordIndex: number;
   totalWords: number;
   isCurrentWordComplete: boolean;
+  isSkipping: boolean;
+  levelScore: number;
+  isGameComplete: boolean;
+  isGameStarted: boolean;
   onWordAdvance: () => void;
+  onSkip: () => void;
+  onPlayAgain: () => void;
+  onStartGame: () => void;
 }
 
 export interface DinosaurProps {

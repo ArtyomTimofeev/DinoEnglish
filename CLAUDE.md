@@ -8,7 +8,7 @@ Always communicate with the user in Russian (русский язык).
 
 ## Project Overview
 
-VoiceLearn is a React-based Progressive Web App (PWA) that teaches English vocabulary through voice recognition. Users see Russian words and must speak the English translation. The app features a gamified dinosaur progress system where a pixel-art dinosaur "eats" animals as you answer correctly. It uses the device camera as a background, speech recognition for answers, and provides real-time feedback with audio/haptic responses.
+DinoEnglish is a React-based Progressive Web App (PWA) that teaches English vocabulary through voice recognition. Users see Russian words and must speak the English translation. The app features a gamified dinosaur progress system where a pixel-art dinosaur "eats" animals as you answer correctly. It uses the device camera as a background, speech recognition for answers, and provides real-time feedback with audio/haptic responses.
 
 ## Development Commands
 

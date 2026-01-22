@@ -1,6 +1,6 @@
 {
-  "name": "VoiceLearn - English Learning Game",
-  "short_name": "VoiceLearn",
+  "name": "DinoEnglish - English Learning Game",
+  "short_name": "DinoEnglish",
   "description": "Master English through voice with an interactive game that combines camera, speech recognition, and fun challenges!",
   "start_url": "/",
   "display": "standalone",

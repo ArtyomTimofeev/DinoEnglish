@@ -19,7 +19,7 @@ Visit: https://www.pwabuilder.com/imageGenerator
 3. Copy the files to this directory
 
 ### Option 2: Manual Creation
-Create square icons with the VoiceLearn logo or app branding:
+Create square icons with the DinoEnglish logo or app branding:
 - Use a design tool (Figma, Canva, Photoshop)
 - Export as PNG files at the required sizes
 - Ensure the icons have a transparent or colored background

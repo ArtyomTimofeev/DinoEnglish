@@ -143,7 +143,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onStart, onError }
                 marginBottom: '8px',
                 textShadow: '2px 2px 8px rgba(0,0,0,0.8)'
               }}>
-                VoiceLearn
+                DinoEnglish
               </h1>
               <p style={{
                 fontSize: '1.125rem',

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'voicelearn-v1';
+const CACHE_NAME = 'dinoenglish-v1';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -81,7 +81,7 @@ self.addEventListener('fetch', (event) => {
       }).catch(() => {
         // If both cache and network fail, return offline page or error
         console.log('Fetch failed; returning offline page');
-        return new Response('Offline - VoiceLearn requires an internet connection for speech recognition.', {
+        return new Response('Offline - DinoEnglish requires an internet connection for speech recognition.', {
           headers: { 'Content-Type': 'text/plain' }
         });
       });

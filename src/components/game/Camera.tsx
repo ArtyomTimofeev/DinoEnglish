@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useCamera } from '@/hooks/useCamera';
 
 interface CameraProps {
@@ -6,7 +6,10 @@ interface CameraProps {
   onError?: (error: string) => void;
 }
 
-export const Camera: React.FC<CameraProps> = ({ onPermissionGranted, onError }) => {
+export const Camera: React.FC<CameraProps> = ({
+  onPermissionGranted,
+  onError,
+}) => {
   const { videoRef, error, startCamera, hasPermission } = useCamera();
 
   useEffect(() => {

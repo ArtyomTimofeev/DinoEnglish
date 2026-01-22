@@ -4,6 +4,7 @@ import { Howl } from 'howler';
 interface UseAudioReturn {
   playSuccess: () => void;
   playError: () => void;
+  playSkip: () => void;
   playRocketLaunch: () => void;
   isLoaded: boolean;
 }
@@ -12,18 +13,25 @@ export const useAudio = (): UseAudioReturn => {
   const [isLoaded, setIsLoaded] = useState(false);
   const successSoundRef = useRef<Howl | null>(null);
   const errorSoundRef = useRef<Howl | null>(null);
+  const skipSoundRef = useRef<Howl | null>(null);
   const rocketSoundRef = useRef<Howl | null>(null);
 
   useEffect(() => {
     // Preload audio files
     successSoundRef.current = new Howl({
-      src: ['/sounds/success.mp3'],
+      src: ['/sounds/point.wav'],
       volume: 0.5,
       preload: true,
     });
 
     errorSoundRef.current = new Howl({
-      src: ['/sounds/error.mp3'],
+      src: ['/sounds/die.wav'],
+      volume: 0.5,
+      preload: true,
+    });
+
+    skipSoundRef.current = new Howl({
+      src: ['/sounds/jump.wav'],
       volume: 0.5,
       preload: true,
     });
@@ -39,6 +47,7 @@ export const useAudio = (): UseAudioReturn => {
       if (
         successSoundRef.current?.state() === 'loaded' &&
         errorSoundRef.current?.state() === 'loaded' &&
+        skipSoundRef.current?.state() === 'loaded' &&
         rocketSoundRef.current?.state() === 'loaded'
       ) {
         setIsLoaded(true);
@@ -47,11 +56,13 @@ export const useAudio = (): UseAudioReturn => {
 
     successSoundRef.current.on('load', checkLoaded);
     errorSoundRef.current.on('load', checkLoaded);
+    skipSoundRef.current.on('load', checkLoaded);
     rocketSoundRef.current.on('load', checkLoaded);
 
     return () => {
       successSoundRef.current?.unload();
       errorSoundRef.current?.unload();
+      skipSoundRef.current?.unload();
       rocketSoundRef.current?.unload();
     };
   }, []);
@@ -64,6 +75,10 @@ export const useAudio = (): UseAudioReturn => {
     errorSoundRef.current?.play();
   };
 
+  const playSkip = () => {
+    skipSoundRef.current?.play();
+  };
+
   const playRocketLaunch = () => {
     rocketSoundRef.current?.play();
   };
@@ -71,6 +86,7 @@ export const useAudio = (): UseAudioReturn => {
   return {
     playSuccess,
     playError,
+    playSkip,
     playRocketLaunch,
     isLoaded,
   };

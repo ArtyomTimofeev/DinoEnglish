@@ -1,25 +1,29 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { MAX_LEVEL_SCORE } from '@/constants/gameConfig';
 
 interface LevelProgressBarProps {
-  levelScore: number;
+  correctAnswersCount: number; // Number of correct answers (0-12)
 }
 
-// CEFR levels in order with colors (~17% each for 6 levels)
+// Total words in game
+const TOTAL_WORDS = 12;
+
+// CEFR levels with thresholds based on correct answers
+// 12 = C2, 10+ = C1, 8+ = B2, 6+ = B1, 4+ = A2, 2+ = A1, 0-1 = A0
 const LEVELS = [
-  { name: 'A1', color: '#22c55e', threshold: 0 },   // 0-16% (17%)
-  { name: 'A2', color: '#84cc16', threshold: 17 },  // 17-33% (17%)
-  { name: 'B1', color: '#eab308', threshold: 34 },  // 34-50% (17%)
-  { name: 'B2', color: '#f97316', threshold: 51 },  // 51-67% (17%)
-  { name: 'C1', color: '#ef4444', threshold: 68 },  // 68-84% (17%)
-  { name: 'C2', color: '#a855f7', threshold: 85 },  // 85-100% (15%)
+  { name: 'A0', color: '#94a3b8', minCorrect: 0 },
+  { name: 'A1', color: '#22c55e', minCorrect: 2 },
+  { name: 'A2', color: '#84cc16', minCorrect: 4 },
+  { name: 'B1', color: '#eab308', minCorrect: 6 },
+  { name: 'B2', color: '#f97316', minCorrect: 8 },
+  { name: 'C1', color: '#ef4444', minCorrect: 10 },
+  { name: 'C2', color: '#a855f7', minCorrect: 12 },
 ];
 
-// Get achieved level based on percentage
-const getAchievedLevel = (percentage: number) => {
+// Get achieved level based on correct answers
+const getAchievedLevel = (correctCount: number) => {
   for (let i = LEVELS.length - 1; i >= 0; i--) {
-    if (percentage >= LEVELS[i].threshold) {
+    if (correctCount >= LEVELS[i].minCorrect) {
       return LEVELS[i];
     }
   }
@@ -27,10 +31,10 @@ const getAchievedLevel = (percentage: number) => {
 };
 
 export const LevelProgressBar: React.FC<LevelProgressBarProps> = ({
-  levelScore,
+  correctAnswersCount,
 }) => {
-  const percentage = (levelScore / MAX_LEVEL_SCORE) * 100;
-  const achievedLevel = getAchievedLevel(percentage);
+  const percentage = (correctAnswersCount / TOTAL_WORDS) * 100;
+  const achievedLevel = getAchievedLevel(correctAnswersCount);
 
   return (
     <div
@@ -41,17 +45,17 @@ export const LevelProgressBar: React.FC<LevelProgressBarProps> = ({
         gap: '4px',
       }}
     >
-      {/* Score display */}
+      {/* Achieved level badge */}
       <div
         style={{
-          fontFamily: 'monospace',
-          fontSize: '12px',
-          fontWeight: 'bold',
-          color: '#ffffff',
+          fontFamily: "'Press Start 2P', monospace",
+          fontSize: '10px',
+          fontWeight: 'normal',
+          color: achievedLevel.color,
           textShadow: '1px 1px 0 #000',
         }}
       >
-        {levelScore}pts
+        {achievedLevel.name}
       </div>
 
       {/* Progress bar container */}
@@ -96,19 +100,6 @@ export const LevelProgressBar: React.FC<LevelProgressBarProps> = ({
             />
           ))}
         </div>
-      </div>
-
-      {/* Achieved level badge */}
-      <div
-        style={{
-          fontFamily: 'monospace',
-          fontSize: '12px',
-          fontWeight: 'bold',
-          color: achievedLevel.color,
-          textShadow: '1px 1px 0 #000',
-        }}
-      >
-        {achievedLevel.name}
       </div>
     </div>
   );

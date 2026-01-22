@@ -9,19 +9,16 @@ import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
 import { useAudio } from '@/hooks/useAudio';
 import { useVibration } from '@/hooks/useVibration';
 import { GAME_CONFIG } from '@/constants/gameConfig';
-import { validateAnswer } from '@/utils/validation';
+import { validateAnswer, findMatchedAnswer } from '@/utils/validation';
 
-interface GameScreenProps {
-  onPlayAgain: () => void;
-}
-
-export const GameScreen: React.FC<GameScreenProps> = ({ onPlayAgain }) => {
+export const GameScreen: React.FC = () => {
   const {
     gameState,
     currentWord,
     isCurrentWordComplete,
     isSkipping,
-    levelScore,
+    correctAnswersCount,
+    userLevelResult,
     submitAnswer,
     nextWord,
     startGame,
@@ -34,11 +31,13 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onPlayAgain }) => {
     stopListening,
     resetTranscript,
   } = useSpeechRecognition();
-  const { playSuccess, playError } = useAudio();
+  const { playSuccess, playError, playSkip } = useAudio();
   const { vibrateSuccess, vibrateError } = useVibration();
 
   const [showFlash, setShowFlash] = useState(false);
   const [flashType, setFlashType] = useState<'success' | 'error'>('success');
+  const [isShowingEnglish, setIsShowingEnglish] = useState(false);
+  const [englishToShow, setEnglishToShow] = useState('');
 
   // Use refs to avoid stale closures and track processed transcripts
   const currentWordRef = useRef(currentWord);
@@ -46,6 +45,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onPlayAgain }) => {
   const lastProcessedTranscriptRef = useRef('');
   const interimTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastInterimRef = useRef('');
+  const isProcessingErrorRef = useRef(false);
 
   useEffect(() => {
     currentWordRef.current = currentWord;
@@ -62,9 +62,16 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onPlayAgain }) => {
       if (answer === lastProcessedTranscriptRef.current) {
         return;
       }
+
+      // Block during error cooldown period
+      if (isProcessingErrorRef.current) {
+        return;
+      }
+
       lastProcessedTranscriptRef.current = answer;
 
       const isCorrect = submitAnswerRef.current(answer);
+      console.log(`🎤 Heard: "${answer}" → ${isCorrect ? '✅ correct' : '❌ wrong'}`);
 
       setFlashType(isCorrect ? 'success' : 'error');
       setShowFlash(true);
@@ -73,18 +80,28 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onPlayAgain }) => {
         playSuccess();
         vibrateSuccess();
         stopListening();
+
+        // Показать тот вариант ответа, который произнёс пользователь
+        setEnglishToShow(findMatchedAnswer(answer, currentWordRef.current));
+        setIsShowingEnglish(true);
+
         setTimeout(() => {
           setShowFlash(false);
         }, 500);
       } else {
+        isProcessingErrorRef.current = true;
         playError();
         vibrateError();
 
         // Reset and restart listening for retry
         setTimeout(() => {
           setShowFlash(false);
+          // Сбросить tracking, чтобы можно было повторить то же слово
+          lastProcessedTranscriptRef.current = '';
+          lastInterimRef.current = '';
           resetTranscript();
           startListening();
+          isProcessingErrorRef.current = false;
         }, 500);
       }
     },
@@ -101,6 +118,10 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onPlayAgain }) => {
 
   // Callback for when dino advances to next word
   const handleWordAdvance = useCallback(() => {
+    // Сбросить показ английского слова перед переходом
+    setIsShowingEnglish(false);
+    setEnglishToShow('');
+
     // Reset tracking to allow new answers
     lastProcessedTranscriptRef.current = '';
     lastInterimRef.current = '';
@@ -121,24 +142,23 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onPlayAgain }) => {
   const handleSkip = useCallback(() => {
     stopListening();
     resetTranscript();
+    playSkip();
     lastProcessedTranscriptRef.current = '';
     lastInterimRef.current = '';
     if (interimTimeoutRef.current) {
       clearTimeout(interimTimeoutRef.current);
       interimTimeoutRef.current = null;
     }
-    skipWord();
-  }, [stopListening, resetTranscript, skipWord]);
 
+    // Показать правильный ответ
+    setEnglishToShow(currentWordRef.current.englishAnswers[0]);
+    setIsShowingEnglish(true);
+
+    skipWord();
+  }, [stopListening, resetTranscript, playSkip, skipWord]);
 
   // Start listening when game is active and word is not complete
   useEffect(() => {
-    console.log('GameScreen useEffect:', {
-      isGameActive: gameState.isGameActive,
-      isGameComplete: gameState.isGameComplete,
-      isCurrentWordComplete,
-      currentWordIndex: gameState.currentWordIndex,
-    });
     if (
       gameState.isGameActive &&
       !gameState.isGameComplete &&
@@ -147,7 +167,6 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onPlayAgain }) => {
       // Delay start to allow camera and other resources to initialize
       const delay = gameState.currentWordIndex === 0 ? 500 : 0;
       const timeoutId = setTimeout(() => {
-        console.log('Calling startListening from GameScreen');
         resetTranscript();
         startListening();
       }, delay);
@@ -308,10 +327,17 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onPlayAgain }) => {
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'flex-end',
-              paddingBottom: '65%',
+              paddingBottom: '75%',
             }}
           >
-            <WordDisplay word={currentWord.russian} />
+            <WordDisplay
+              word={currentWord.russian}
+              englishWord={englishToShow}
+              isShowingEnglish={isShowingEnglish}
+              isGameActive={gameState.isGameActive}
+              isGameComplete={gameState.isGameComplete}
+              userLevelResult={userLevelResult}
+            />
           </div>
         </div>
 
@@ -321,12 +347,11 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onPlayAgain }) => {
           totalWords={GAME_CONFIG.totalWords}
           isCurrentWordComplete={isCurrentWordComplete}
           isSkipping={isSkipping}
-          levelScore={levelScore}
+          correctAnswersCount={correctAnswersCount}
           isGameComplete={gameState.isGameComplete}
           isGameStarted={gameState.isGameActive}
           onWordAdvance={handleWordAdvance}
           onSkip={handleSkip}
-          onPlayAgain={onPlayAgain}
           onStartGame={startGame}
         />
       </div>

@@ -27,7 +27,6 @@ export const useSpeechRecognition = (): UseSpeechRecognitionReturn => {
   const isSupported = 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
 
   useEffect(() => {
-    console.log('useSpeechRecognition useEffect init, isSupported:', isSupported);
     if (!isSupported) {
       setError('Speech recognition is not supported in this browser');
       return;
@@ -35,7 +34,6 @@ export const useSpeechRecognition = (): UseSpeechRecognitionReturn => {
 
     const SpeechRecognition = window.webkitSpeechRecognition || window.SpeechRecognition;
     const recognition = new SpeechRecognition();
-    console.log('SpeechRecognition instance created');
 
     recognition.lang = SPEECH_CONFIG.lang;
     recognition.continuous = SPEECH_CONFIG.continuous;
@@ -43,7 +41,6 @@ export const useSpeechRecognition = (): UseSpeechRecognitionReturn => {
     recognition.maxAlternatives = SPEECH_CONFIG.maxAlternatives;
 
     recognition.onstart = () => {
-      console.log('recognition.onstart fired');
       isListeningRef.current = true;
       setIsListening(true);
       setError(null);
@@ -77,7 +74,6 @@ export const useSpeechRecognition = (): UseSpeechRecognitionReturn => {
     };
 
     recognition.onerror = (event: any) => {
-      console.log('recognition.onerror:', event.error);
       if (event.error === 'aborted') {
         return;
       }
@@ -88,20 +84,18 @@ export const useSpeechRecognition = (): UseSpeechRecognitionReturn => {
     };
 
     recognition.onend = () => {
-      console.log('recognition.onend, shouldBeListening:', shouldBeListeningRef.current, 'attempts:', restartAttemptsRef.current);
       isListeningRef.current = false;
       setIsListening(false);
 
       // Auto-restart if we should still be listening (with attempt limit)
       if (shouldBeListeningRef.current && restartAttemptsRef.current < maxRestartAttempts) {
         restartAttemptsRef.current += 1;
-        console.log('Auto-restarting, attempt:', restartAttemptsRef.current);
         setTimeout(() => {
           if (shouldBeListeningRef.current && recognitionRef.current) {
             try {
               recognitionRef.current.start();
-            } catch (e) {
-              console.log('Auto-restart error:', e);
+            } catch {
+              // Ignore auto-restart errors
             }
           }
         }, 100);
@@ -111,7 +105,6 @@ export const useSpeechRecognition = (): UseSpeechRecognitionReturn => {
     recognitionRef.current = recognition;
 
     return () => {
-      console.log('useSpeechRecognition cleanup');
       shouldBeListeningRef.current = false; // Prevent auto-restart after cleanup
       if (recognitionRef.current) {
         try {
@@ -124,19 +117,29 @@ export const useSpeechRecognition = (): UseSpeechRecognitionReturn => {
   }, [isSupported]);
 
   const startListening = useCallback(() => {
-    console.log('startListening called, isListening:', isListeningRef.current, 'recognition:', !!recognitionRef.current);
     shouldBeListeningRef.current = true;
     restartAttemptsRef.current = 0;
-    if (recognitionRef.current && !isListeningRef.current) {
+
+    if (!recognitionRef.current) return;
+
+    // Если уже слушаем, сначала остановим и перезапустим
+    if (isListeningRef.current) {
       try {
-        setTranscript('');
-        setInterimTranscript('');
-        setError(null);
-        recognitionRef.current.start();
-        console.log('recognition.start() called');
-      } catch (e) {
-        console.log('startListening error:', e);
+        recognitionRef.current.stop();
+      } catch {
+        // Ignore
       }
+      // onend callback перезапустит recognition через auto-restart
+      return;
+    }
+
+    try {
+      setTranscript('');
+      setInterimTranscript('');
+      setError(null);
+      recognitionRef.current.start();
+    } catch {
+      // Ignore start errors
     }
   }, []);
 

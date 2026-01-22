@@ -63,16 +63,3 @@ export const DINO_CONFIG = {
   dinoColor: '#535353',
   groundColor: '#535353',
 };
-
-// Points awarded for each CEFR level
-export const LEVEL_POINTS: Record<string, number> = {
-  A1: 2,
-  A2: 3,
-  B1: 4,
-  B2: 5,
-  C1: 6,
-  C2: 7,
-};
-
-// Maximum possible level score (2+2+3+3+4+4+5+5+6+6+7+7 = 54)
-export const MAX_LEVEL_SCORE = 54;

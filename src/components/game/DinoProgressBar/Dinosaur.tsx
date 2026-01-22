@@ -80,7 +80,7 @@ export const Dinosaur: React.FC<DinosaurComponentProps> = ({ state }) => {
     <div
       style={{
         position: 'absolute',
-        bottom: '17%',
+        bottom: '24%',
         left: '0',
         transform: 'scale(0.7)',
         transformOrigin: 'bottom center',

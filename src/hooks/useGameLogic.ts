@@ -1,8 +1,9 @@
-import { useState, useCallback, useEffect } from 'react';
-import type { GameState, AnswerResult, Word } from '@/types/game.types';
-import { WORD_DATASET, shuffleWords } from '@/data/wordDataset';
+import { useState, useCallback, useEffect, useMemo } from 'react';
+import type { GameState, AnswerResult, Word, UserLevelResult } from '@/types/game.types';
+import { selectGameWords, WORD_DATASET } from '@/data/wordDataset';
 import { validateAnswer } from '@/utils/validation';
-import { GAME_CONFIG, DINO_CONFIG, LEVEL_POINTS } from '@/constants/gameConfig';
+import { calculateUserLevel } from '@/utils/levelCalculation';
+import { GAME_CONFIG } from '@/constants/gameConfig';
 
 interface UseGameLogicReturn {
   gameState: GameState;
@@ -10,7 +11,8 @@ interface UseGameLogicReturn {
   words: Word[];
   isCurrentWordComplete: boolean;
   isSkipping: boolean;
-  levelScore: number;
+  correctAnswersCount: number;
+  userLevelResult: UserLevelResult | null;
   submitAnswer: (userAnswer: string) => boolean;
   nextWord: () => void;
   resetGame: () => void;
@@ -33,17 +35,18 @@ export const useGameLogic = (): UseGameLogicReturn => {
   const [gameState, setGameState] = useState<GameState>(initialGameState);
   const [isCurrentWordComplete, setIsCurrentWordComplete] = useState(false);
   const [isSkipping, setIsSkipping] = useState(false);
-  const [levelScore, setLevelScore] = useState(0);
+  const [correctWordIndices, setCorrectWordIndices] = useState<Set<number>>(new Set());
 
   // Initialize words on mount
   useEffect(() => {
-    setWords(shuffleWords(WORD_DATASET));
+    setWords(selectGameWords());
   }, []);
 
   const currentWord = words[gameState.currentWordIndex] || WORD_DATASET[0];
 
   const startGame = useCallback(() => {
-    setWords(shuffleWords(WORD_DATASET));
+    // Загружаем новые слова при старте игры
+    setWords(selectGameWords());
     setGameState({
       ...initialGameState,
       isGameActive: true,
@@ -51,7 +54,7 @@ export const useGameLogic = (): UseGameLogicReturn => {
     });
     setIsCurrentWordComplete(false);
     setIsSkipping(false);
-    setLevelScore(0);
+    setCorrectWordIndices(new Set());
   }, []);
 
   const submitAnswer = useCallback(
@@ -71,10 +74,6 @@ export const useGameLogic = (): UseGameLogicReturn => {
           timeElapsed: 0, // No longer tracking time
         };
 
-        // Calculate level points based on current animal's CEFR level
-        const currentLevel = DINO_CONFIG.animalLevels[gameState.currentWordIndex];
-        const levelPoints = LEVEL_POINTS[currentLevel] || 1;
-
         setGameState((prev) => {
           const newStreak = prev.currentStreak + 1;
           const newMaxStreak = Math.max(prev.maxStreak, newStreak);
@@ -89,7 +88,7 @@ export const useGameLogic = (): UseGameLogicReturn => {
           };
         });
 
-        setLevelScore((prev) => prev + levelPoints);
+        setCorrectWordIndices((prev) => new Set([...prev, gameState.currentWordIndex]));
         setIsCurrentWordComplete(true);
       }
       // On wrong answer, don't record anything - user will retry
@@ -120,14 +119,22 @@ export const useGameLogic = (): UseGameLogicReturn => {
       return;
     }
     setIsSkipping(true);
-    // Don't update score or levelScore - skipped words don't count
+    // Don't update score - skipped words don't count
   }, [gameState.isGameActive, gameState.isGameComplete, isCurrentWordComplete, isSkipping]);
 
   const resetGame = useCallback(() => {
-    setWords(shuffleWords(WORD_DATASET));
+    setWords(selectGameWords());
     setGameState(initialGameState);
     setIsCurrentWordComplete(false);
   }, []);
+
+  // Calculate user level result when game is complete
+  const userLevelResult = useMemo(() => {
+    if (!gameState.isGameComplete || words.length === 0) {
+      return null;
+    }
+    return calculateUserLevel(words, correctWordIndices);
+  }, [gameState.isGameComplete, words, correctWordIndices]);
 
   return {
     gameState,
@@ -135,7 +142,8 @@ export const useGameLogic = (): UseGameLogicReturn => {
     words,
     isCurrentWordComplete,
     isSkipping,
-    levelScore,
+    correctAnswersCount: correctWordIndices.size,
+    userLevelResult,
     submitAnswer,
     nextWord,
     resetGame,

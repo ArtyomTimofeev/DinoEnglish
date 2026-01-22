@@ -32,12 +32,11 @@ export const DinoProgressBar: React.FC<DinoProgressBarProps> = ({
   totalWords,
   isCurrentWordComplete,
   isSkipping,
-  levelScore,
+  correctAnswersCount,
   isGameComplete,
   isGameStarted,
   onWordAdvance,
   onSkip,
-  onPlayAgain,
   onStartGame,
 }) => {
   const [dinoState, setDinoState] = useState<DinoState>('idle');
@@ -47,6 +46,7 @@ export const DinoProgressBar: React.FC<DinoProgressBarProps> = ({
   const [animalKey, setAnimalKey] = useState(0); // Key for re-mounting animal animation
   const [animalPosition, setAnimalPosition] =
     useState<AnimalPosition>('approaching');
+  const [sessionKey, setSessionKey] = useState(0); // Unique key for each game session
 
   // Refs for tracking state without causing re-renders
   const bumpLoopRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -73,6 +73,20 @@ export const DinoProgressBar: React.FC<DinoProgressBarProps> = ({
       travelTimeoutRef.current = null;
     }
   }, []);
+
+  // Cleanup timeouts on unmount
+  useEffect(() => {
+    return () => {
+      clearAllTimeouts();
+    };
+  }, [clearAllTimeouts]);
+
+  // Increment session key when game starts for fresh Framer Motion animations
+  useEffect(() => {
+    if (isGameStarted) {
+      setSessionKey((prev) => prev + 1);
+    }
+  }, [isGameStarted]);
 
   // Travel duration for first approach animation
   const syncedTravelDuration = 1800; // 1.8s - matches first approach animation duration
@@ -217,6 +231,9 @@ export const DinoProgressBar: React.FC<DinoProgressBarProps> = ({
     if (!isGameStarted) {
       // Reset to idle state when game not started
       setDinoState('idle');
+      isInitializedRef.current = false; // Reset for next game session
+      setHasReachedAnimal(false); // Reset for correct animation duration
+      setAnimalPosition('approaching'); // Reset animal position
       return;
     }
 
@@ -245,7 +262,11 @@ export const DinoProgressBar: React.FC<DinoProgressBarProps> = ({
 
     // If animal reached dino and not eating/skipping, start bump loop
     // Skip initial delay on first approach to avoid "sticking" effect
-    if (animalPosition === 'at_dino' && !isEatingRef.current && !isSkippingRef.current) {
+    if (
+      animalPosition === 'at_dino' &&
+      !isEatingRef.current &&
+      !isSkippingRef.current
+    ) {
       startBumpLoop(true);
     }
   }, [isCurrentWordComplete, animalPosition, doEat, startBumpLoop]);
@@ -291,50 +312,56 @@ export const DinoProgressBar: React.FC<DinoProgressBarProps> = ({
         }}
       >
         {/* Current Animal on the road - only show when game started */}
-        {isGameStarted && currentAnimal && !isEatingAnimation && !isSkipAnimation && (
-          <motion.div
-            key={`animal-${animalKey}`}
-            initial={{ right: '-10%' }}
-            animate={{ right: '60%' }}
-            transition={{
-              duration: hasReachedAnimal ? 0.5 : 1.8,
-              ease: 'linear',
-            }}
-            style={{
-              position: 'absolute',
-              bottom: '17%',
-              transformOrigin: 'center bottom',
-              zIndex: 10,
-            }}
-          >
-            {/* Level badge above animal */}
+        {isGameStarted &&
+          currentAnimal &&
+          !isEatingAnimation &&
+          !isSkipAnimation && (
             <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.3 }}
+              key={`animal-${sessionKey}-${animalKey}`}
+              initial={{ right: '-10%' }}
+              animate={{ right: '60%' }}
+              transition={{
+                duration: hasReachedAnimal ? 0.5 : 1.8,
+                ease: 'linear',
+              }}
               style={{
                 position: 'absolute',
-                top: '-35px',
-                left: '60%',
-                transform: 'translateX(-50%)',
-                backgroundColor: currentAnimal.levelColor,
-                color: 'white',
-                padding: '4px 10px',
-                borderRadius: '12px',
-                fontSize: '14px',
-                fontWeight: 'bold',
-                boxShadow: `0 2px 8px ${currentAnimal.levelColor}80`,
-                whiteSpace: 'nowrap',
+                bottom: '24%',
+                transformOrigin: 'center bottom',
+                zIndex: 10,
               }}
             >
-              {currentAnimal.level}
+              {/* Level badge above animal */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3, duration: 0.3 }}
+                style={{
+                  position: 'absolute',
+                  top: '-35px',
+                  left: '60%',
+                  transform: 'translateX(-50%)',
+                  backgroundColor: currentAnimal.levelColor,
+                  color: 'white',
+                  padding: '4px 8px',
+                  border: '2px solid #000',
+                  borderRadius: '2px',
+                  fontFamily: "'Press Start 2P', monospace",
+                  fontSize: '8px',
+                  fontWeight: 'normal',
+                  textShadow: '1px 1px 0 rgba(0,0,0,0.5)',
+                  boxShadow: '2px 2px 0 #000',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {currentAnimal.level}
+              </motion.div>
+              <AnimalSprite
+                type={currentAnimal.type}
+                scale={currentAnimal.scale}
+              />
             </motion.div>
-            <AnimalSprite
-              type={currentAnimal.type}
-              scale={currentAnimal.scale}
-            />
-          </motion.div>
-        )}
+          )}
 
         {/* Eating animation - vacuum sucking effect */}
         <AnimatePresence>
@@ -342,7 +369,7 @@ export const DinoProgressBar: React.FC<DinoProgressBarProps> = ({
             <motion.div
               initial={{
                 right: '60%',
-                bottom: '17%',
+                bottom: '24%',
                 scaleX: 1,
                 scaleY: 1,
                 rotate: 0,
@@ -350,7 +377,7 @@ export const DinoProgressBar: React.FC<DinoProgressBarProps> = ({
               }}
               animate={{
                 right: ['60%', '65%', '72%', '80%'],
-                bottom: ['17%', '19%', '21%', '22%'],
+                bottom: ['24%', '26%', '27%', '28%'],
                 scaleX: [1, 1.5, 2, 0.1],
                 scaleY: [1, 0.6, 0.4, 0.1],
                 rotate: [0, -10, -180, -540],
@@ -382,12 +409,12 @@ export const DinoProgressBar: React.FC<DinoProgressBarProps> = ({
             <motion.div
               initial={{
                 right: '60%',
-                bottom: '17%',
+                bottom: '24%',
                 opacity: 1,
               }}
               animate={{
                 right: '110%',
-                bottom: '17%',
+                bottom: '24%',
                 opacity: [1, 1, 0.5, 0],
               }}
               exit={{ opacity: 0 }}
@@ -409,11 +436,14 @@ export const DinoProgressBar: React.FC<DinoProgressBarProps> = ({
                   transform: 'translateX(-50%)',
                   backgroundColor: currentAnimal.levelColor,
                   color: 'white',
-                  padding: '4px 10px',
-                  borderRadius: '12px',
-                  fontSize: '14px',
-                  fontWeight: 'bold',
-                  boxShadow: `0 2px 8px ${currentAnimal.levelColor}80`,
+                  padding: '4px 8px',
+                  border: '2px solid #000',
+                  borderRadius: '2px',
+                  fontFamily: "'Press Start 2P', monospace",
+                  fontSize: '8px',
+                  fontWeight: 'normal',
+                  textShadow: '1px 1px 0 rgba(0,0,0,0.5)',
+                  boxShadow: '2px 2px 0 #000',
                   whiteSpace: 'nowrap',
                 }}
               >
@@ -435,28 +465,52 @@ export const DinoProgressBar: React.FC<DinoProgressBarProps> = ({
       <div
         style={{
           position: 'absolute',
-          bottom: '6%',
+          bottom: '14%',
           left: 0,
           right: 0,
           display: 'flex',
           justifyContent: 'center',
-          alignItems: 'center',
+          alignItems: 'flex-start',
           gap: '16px',
           zIndex: 25,
           pointerEvents: 'auto',
         }}
       >
         {/* Level Progress Bar - left of skip button */}
-        <LevelProgressBar levelScore={levelScore} />
+        <LevelProgressBar correctAnswersCount={correctAnswersCount} />
 
         {/* Button: Play / Skip / Play Again */}
-        {!isGameStarted ? (
+        {isGameComplete ? (
           <PixelButton onClick={onStartGame} variant="green">
-            <span style={{ fontSize: '26px', lineHeight: 1, display: 'flex', alignItems: 'center' }}>▶</span>
+            <span
+              style={{
+                fontFamily: 'Arial, sans-serif',
+                fontSize: '32px',
+                fontWeight: 'bold',
+                lineHeight: 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: '6%',
+              }}
+            >
+              ↻
+            </span>
           </PixelButton>
-        ) : isGameComplete ? (
-          <PixelButton onClick={onPlayAgain} variant="green">
-            <span style={{ fontSize: '26px', lineHeight: 1, display: 'flex', alignItems: 'center' }}>↻</span>
+        ) : !isGameStarted ? (
+          <PixelButton onClick={onStartGame} variant="green">
+            <span
+              style={{
+                fontSize: '26px',
+                lineHeight: 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginTop: '-12px',
+              }}
+            >
+              ▶
+            </span>
           </PixelButton>
         ) : (
           <PixelButton

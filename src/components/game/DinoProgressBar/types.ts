@@ -26,12 +26,11 @@ export interface DinoProgressBarProps {
   totalWords: number;
   isCurrentWordComplete: boolean;
   isSkipping: boolean;
-  levelScore: number;
+  correctAnswersCount: number;
   isGameComplete: boolean;
   isGameStarted: boolean;
   onWordAdvance: () => void;
   onSkip: () => void;
-  onPlayAgain: () => void;
   onStartGame: () => void;
 }
 

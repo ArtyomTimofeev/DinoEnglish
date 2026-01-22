@@ -6,19 +6,21 @@ interface AnimalSpriteProps {
   scale: number;
 }
 
+const base = import.meta.env.BASE_URL;
+
 const animalGifs: Record<AnimalType, string> = {
-  crab: '/sprites/animals/CoralCrab.gif',
-  pig: '/sprites/animals/DaintyPig.gif',
-  skunk: '/sprites/animals/StinkySkunk.gif',
-  monkey: '/sprites/animals/CuriousMonkey.gif',
-  eagle: '/sprites/animals/BaldEagle.gif',
-  wolf: '/sprites/animals/TimberWolf.gif',
-  kangaroo: '/sprites/animals/HoppingKangaroo.gif',
-  cow: '/sprites/animals/GrazingCow.gif',
-  orangutan: '/sprites/animals/AgitatedOrangutan.gif',
-  buffalo: '/sprites/animals/EnragedBuffalo.gif',
-  caveBear: '/sprites/animals/CaveBear.gif',
-  elephant: '/sprites/animals/StompingElephant.gif',
+  crab: `${base}sprites/animals/CoralCrab.gif`,
+  pig: `${base}sprites/animals/DaintyPig.gif`,
+  skunk: `${base}sprites/animals/StinkySkunk.gif`,
+  monkey: `${base}sprites/animals/CuriousMonkey.gif`,
+  eagle: `${base}sprites/animals/BaldEagle.gif`,
+  wolf: `${base}sprites/animals/TimberWolf.gif`,
+  kangaroo: `${base}sprites/animals/HoppingKangaroo.gif`,
+  cow: `${base}sprites/animals/GrazingCow.gif`,
+  orangutan: `${base}sprites/animals/AgitatedOrangutan.gif`,
+  buffalo: `${base}sprites/animals/EnragedBuffalo.gif`,
+  caveBear: `${base}sprites/animals/CaveBear.gif`,
+  elephant: `${base}sprites/animals/StompingElephant.gif`,
 };
 
 export const AnimalSprite: React.FC<AnimalSpriteProps> = ({ type, scale }) => {

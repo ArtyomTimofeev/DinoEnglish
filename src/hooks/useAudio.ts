@@ -17,27 +17,29 @@ export const useAudio = (): UseAudioReturn => {
   const rocketSoundRef = useRef<Howl | null>(null);
 
   useEffect(() => {
+    const base = import.meta.env.BASE_URL;
+
     // Preload audio files
     successSoundRef.current = new Howl({
-      src: ['/sounds/point.wav'],
+      src: [`${base}sounds/point.wav`],
       volume: 0.5,
       preload: true,
     });
 
     errorSoundRef.current = new Howl({
-      src: ['/sounds/die.wav'],
+      src: [`${base}sounds/die.wav`],
       volume: 0.5,
       preload: true,
     });
 
     skipSoundRef.current = new Howl({
-      src: ['/sounds/jump.wav'],
+      src: [`${base}sounds/jump.wav`],
       volume: 0.5,
       preload: true,
     });
 
     rocketSoundRef.current = new Howl({
-      src: ['/sounds/rocket-launch.mp3'],
+      src: [`${base}sounds/rocket-launch.mp3`],
       volume: 0.3,
       preload: true,
     });

@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 
+const base = import.meta.env.BASE_URL;
+
 interface Road3DProps {
   isMoving?: boolean;
   bounceOffset?: number; // проценты смещения (0 или 15)
@@ -62,7 +64,7 @@ export const Road3D: React.FC<Road3DProps> = ({
         }}
       >
         <img
-          src="/sprites/road.png"
+          src={`${base}sprites/road.png`}
           alt=""
           style={{
             width: roadWidth,
@@ -72,7 +74,7 @@ export const Road3D: React.FC<Road3DProps> = ({
           }}
         />
         <img
-          src="/sprites/road.png"
+          src={`${base}sprites/road.png`}
           alt=""
           style={{
             width: roadWidth,
@@ -82,7 +84,7 @@ export const Road3D: React.FC<Road3DProps> = ({
           }}
         />
         <img
-          src="/sprites/road.png"
+          src={`${base}sprites/road.png`}
           alt=""
           style={{
             width: roadWidth,

@@ -8,14 +8,15 @@ interface DinoSpriteProps {
 }
 
 const SCALE = 1.5;
+const base = import.meta.env.BASE_URL;
 
 // Individual sprite files
 const FRAMES = {
-  idle: '/sprites/dino-idle.png',
-  run1: '/sprites/dino-run1.png',
-  run2: '/sprites/dino-run2.png',
-  duck1: '/sprites/dino-duck1.png',
-  duck2: '/sprites/dino-duck2.png',
+  idle: `${base}sprites/dino-idle.png`,
+  run1: `${base}sprites/dino-run1.png`,
+  run2: `${base}sprites/dino-run2.png`,
+  duck1: `${base}sprites/dino-duck1.png`,
+  duck2: `${base}sprites/dino-duck2.png`,
 };
 
 export const DinoSprite: React.FC<DinoSpriteProps> = ({ state, walkFrame }) => {

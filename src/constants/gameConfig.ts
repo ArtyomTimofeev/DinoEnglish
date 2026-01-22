@@ -17,9 +17,7 @@ export const SPEECH_CONFIG = {
 export const CAMERA_CONFIG = {
   video: {
     facingMode: 'user',
-    width: { ideal: 1080 },
-    height: { ideal: 1920 },
-    aspectRatio: { ideal: 9 / 16 },
+    // Let browser choose optimal resolution to avoid cropping on different devices
   },
 };
 

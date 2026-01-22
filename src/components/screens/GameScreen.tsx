@@ -10,6 +10,7 @@ import { useAudio } from '@/hooks/useAudio';
 import { useVibration } from '@/hooks/useVibration';
 import { GAME_CONFIG } from '@/constants/gameConfig';
 import { validateAnswer, findMatchedAnswer } from '@/utils/validation';
+import { useFrameSize } from '@/hooks/useFrameSize';
 
 export const GameScreen: React.FC = () => {
   const {
@@ -43,7 +44,6 @@ export const GameScreen: React.FC = () => {
   const currentWordRef = useRef(currentWord);
   const submitAnswerRef = useRef(submitAnswer);
   const lastProcessedTranscriptRef = useRef('');
-  const interimTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastInterimRef = useRef('');
   const isProcessingErrorRef = useRef(false);
 
@@ -96,8 +96,8 @@ export const GameScreen: React.FC = () => {
         // Reset and restart listening for retry
         setTimeout(() => {
           setShowFlash(false);
-          // Сбросить tracking, чтобы можно было повторить то же слово
-          lastProcessedTranscriptRef.current = '';
+          // НЕ сбрасываем lastProcessedTranscriptRef - чтобы то же слово не сабмитилось повторно
+          // Сбрасываем только lastInterimRef для нового interim tracking
           lastInterimRef.current = '';
           resetTranscript();
           startListening();
@@ -125,10 +125,6 @@ export const GameScreen: React.FC = () => {
     // Reset tracking to allow new answers
     lastProcessedTranscriptRef.current = '';
     lastInterimRef.current = '';
-    if (interimTimeoutRef.current) {
-      clearTimeout(interimTimeoutRef.current);
-      interimTimeoutRef.current = null;
-    }
     // Reset transcript BEFORE advancing to prevent old answer from triggering on new word
     resetTranscript();
     nextWord();
@@ -145,10 +141,6 @@ export const GameScreen: React.FC = () => {
     playSkip();
     lastProcessedTranscriptRef.current = '';
     lastInterimRef.current = '';
-    if (interimTimeoutRef.current) {
-      clearTimeout(interimTimeoutRef.current);
-      interimTimeoutRef.current = null;
-    }
 
     // Показать правильный ответ
     setEnglishToShow(currentWordRef.current.englishAnswers[0]);
@@ -187,19 +179,11 @@ export const GameScreen: React.FC = () => {
       gameState.isGameComplete ||
       isCurrentWordComplete
     ) {
-      if (interimTimeoutRef.current) {
-        clearTimeout(interimTimeoutRef.current);
-        interimTimeoutRef.current = null;
-      }
       return;
     }
 
     // Check final transcript first - extract and submit first word only
     if (transcript) {
-      if (interimTimeoutRef.current) {
-        clearTimeout(interimTimeoutRef.current);
-        interimTimeoutRef.current = null;
-      }
       const firstWord = transcript.trim().split(/\s+/)[0];
       if (firstWord) {
         handleAnswer(firstWord);
@@ -217,40 +201,20 @@ export const GameScreen: React.FC = () => {
 
     // If first word matches correct answer - submit immediately
     if (validateAnswer(firstWord, currentWordRef.current)) {
-      if (interimTimeoutRef.current) {
-        clearTimeout(interimTimeoutRef.current);
-        interimTimeoutRef.current = null;
-      }
       handleAnswer(firstWord);
       return;
     }
 
     // If there's a space (second word started) - first word is complete, submit it now
     if (words.length > 1 || interimTranscript.includes(' ')) {
-      if (interimTimeoutRef.current) {
-        clearTimeout(interimTimeoutRef.current);
-        interimTimeoutRef.current = null;
-      }
       handleAnswer(firstWord);
       return;
     }
 
-    // Single word, no space yet - wait short timeout for word to stabilize
-    // This handles "c" -> "ca" -> "cat" progression
-    if (firstWord !== lastInterimRef.current) {
-      lastInterimRef.current = firstWord;
-
-      if (interimTimeoutRef.current) {
-        clearTimeout(interimTimeoutRef.current);
-      }
-
-      // Short timeout - just enough for word to stabilize
-      interimTimeoutRef.current = setTimeout(() => {
-        if (lastInterimRef.current && !isCurrentWordComplete) {
-          handleAnswer(lastInterimRef.current);
-        }
-      }, 250);
-    }
+    // Single word, no space yet, and doesn't match answer - wait for final result
+    // This prevents false negatives on long words like "standardization"
+    // where interim might be "standardiz" before completing
+    lastInterimRef.current = firstWord;
   }, [
     transcript,
     interimTranscript,
@@ -260,15 +224,6 @@ export const GameScreen: React.FC = () => {
     handleAnswer,
   ]);
 
-  // Cleanup timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (interimTimeoutRef.current) {
-        clearTimeout(interimTimeoutRef.current);
-      }
-    };
-  }, []);
-
   // Handle game completion - stop listening
   useEffect(() => {
     if (gameState.isGameComplete) {
@@ -277,29 +232,27 @@ export const GameScreen: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameState.isGameComplete]);
 
-  // Calculate width from height to maintain 9:16 aspect ratio
-  const frameHeight = '80vh';
-  const frameWidth = 'calc(80vh * 9 / 16)';
+  // Get responsive frame dimensions with 9:16 aspect ratio and scale factor
+  const { width: frameWidth, height: frameHeight, scale } = useFrameSize();
 
   return (
     <div
       style={{
         minHeight: '100vh',
+        width: '100%',
         display: 'flex',
-        flexDirection: 'column',
         alignItems: 'center',
-        justifyContent: 'flex-start',
-        paddingTop: '5vh',
+        justifyContent: 'center',
         backgroundColor: '#0f172a',
       }}
     >
       <div
+        className="game-frame"
         style={{
           position: 'relative',
           overflow: 'hidden',
-          width: frameWidth,
-          maxWidth: '400px',
-          height: frameHeight,
+          width: `${frameWidth}px`,
+          height: `${frameHeight}px`,
           border: '8px solid #334155',
           borderRadius: '2.5rem',
         }}
@@ -337,6 +290,7 @@ export const GameScreen: React.FC = () => {
               isGameActive={gameState.isGameActive}
               isGameComplete={gameState.isGameComplete}
               userLevelResult={userLevelResult}
+              scale={scale}
             />
           </div>
         </div>
@@ -353,6 +307,7 @@ export const GameScreen: React.FC = () => {
           onWordAdvance={handleWordAdvance}
           onSkip={handleSkip}
           onStartGame={startGame}
+          scale={scale}
         />
       </div>
     </div>

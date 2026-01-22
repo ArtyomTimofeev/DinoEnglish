@@ -32,6 +32,7 @@ export interface DinoProgressBarProps {
   onWordAdvance: () => void;
   onSkip: () => void;
   onStartGame: () => void;
+  scale: number;
 }
 
 export interface DinosaurProps {

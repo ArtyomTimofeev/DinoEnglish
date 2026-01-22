@@ -38,6 +38,7 @@ export const DinoProgressBar: React.FC<DinoProgressBarProps> = ({
   onWordAdvance,
   onSkip,
   onStartGame,
+  scale,
 }) => {
   const [dinoState, setDinoState] = useState<DinoState>('idle');
   const [isEatingAnimation, setIsEatingAnimation] = useState(false);
@@ -295,6 +296,18 @@ export const DinoProgressBar: React.FC<DinoProgressBarProps> = ({
         zIndex: 15,
       }}
     >
+      {/* Масштабируемый контейнер для всего игрового контента */}
+      <div
+        style={{
+          position: 'absolute',
+          width: `${100 / scale}%`,
+          height: `${100 / scale}%`,
+          left: '50%',
+          top: '50%',
+          transform: `translate(-50%, -50%) scale(${scale})`,
+          transformOrigin: 'center center',
+        }}
+      >
       {/* Road - only moving when game is started */}
       <Road3D isMoving={isGameStarted} />
 
@@ -520,6 +533,7 @@ export const DinoProgressBar: React.FC<DinoProgressBarProps> = ({
             SKIP
           </PixelButton>
         )}
+      </div>
       </div>
     </div>
   );

@@ -296,112 +296,112 @@ const B1_WORDS: Word[] = [
 // ============================================
 const B2_WORDS: Word[] = [
   // Achievement & Success
-  // {
-  //   russian: 'ДОСТИЖЕНИЕ',
-  //   englishAnswers: ['achievement', 'accomplishment'],
-  //   level: 'B2',
-  // },
+  {
+    russian: 'ДОСТИЖЕНИЕ',
+    englishAnswers: ['achievement', 'accomplishment'],
+    level: 'B2',
+  },
   { russian: 'СМЕЛОСТЬ', englishAnswers: ['courage', 'bravery'], level: 'B2' },
-  //   {
-  //     russian: 'ТВОРЧЕСТВО',
-  //     englishAnswers: ['creativity', 'creation'],
-  //     level: 'B2',
-  //   },
-  //   { russian: 'ВЫЗОВ', englishAnswers: ['challenge'], level: 'B2' },
-  //   { russian: 'ПОБЕДА', englishAnswers: ['victory', 'win'], level: 'B2' },
-  //   { russian: 'ПОРАЖЕНИЕ', englishAnswers: ['defeat', 'failure'], level: 'B2' },
-  //   {
-  //     russian: 'РАЗВИТИЕ',
-  //     englishAnswers: ['development', 'growth'],
-  //     level: 'B2',
-  //   },
-  //   { russian: 'ПРОГРЕСС', englishAnswers: ['progress'], level: 'B2' },
+  {
+    russian: 'ТВОРЧЕСТВО',
+    englishAnswers: ['creativity', 'creation'],
+    level: 'B2',
+  },
+  { russian: 'ВЫЗОВ', englishAnswers: ['challenge'], level: 'B2' },
+  { russian: 'ПОБЕДА', englishAnswers: ['victory', 'win'], level: 'B2' },
+  { russian: 'ПОРАЖЕНИЕ', englishAnswers: ['defeat', 'failure'], level: 'B2' },
+  {
+    russian: 'РАЗВИТИЕ',
+    englishAnswers: ['development', 'growth'],
+    level: 'B2',
+  },
+  { russian: 'ПРОГРЕСС', englishAnswers: ['progress'], level: 'B2' },
 
-  //   // Business & Economy
-  //   {
-  //     russian: 'ЭКОНОМИКА',
-  //     englishAnswers: ['economy', 'economics'],
-  //     level: 'B2',
-  //   },
-  //   { russian: 'ИНВЕСТИЦИЯ', englishAnswers: ['investment'], level: 'B2' },
-  //   { russian: 'ПРИБЫЛЬ', englishAnswers: ['profit'], level: 'B2' },
-  //   { russian: 'УБЫТОК', englishAnswers: ['loss'], level: 'B2' },
-  //   { russian: 'БЮДЖЕТ', englishAnswers: ['budget'], level: 'B2' },
-  //   { russian: 'СТРАТЕГИЯ', englishAnswers: ['strategy'], level: 'B2' },
-  //   { russian: 'КОНКУРЕНЦИЯ', englishAnswers: ['competition'], level: 'B2' },
-  //   { russian: 'ПАРТНЁРСТВО', englishAnswers: ['partnership'], level: 'B2' },
-  //   { russian: 'КОНТРАКТ', englishAnswers: ['contract'], level: 'B2' },
-  //   {
-  //     russian: 'ПЕРЕГОВОРЫ',
-  //     englishAnswers: ['negotiations', 'negotiation'],
-  //     level: 'B2',
-  //   },
+  // Business & Economy
+  {
+    russian: 'ЭКОНОМИКА',
+    englishAnswers: ['economy', 'economics'],
+    level: 'B2',
+  },
+  { russian: 'ИНВЕСТИЦИЯ', englishAnswers: ['investment'], level: 'B2' },
+  { russian: 'ПРИБЫЛЬ', englishAnswers: ['profit'], level: 'B2' },
+  { russian: 'УБЫТОК', englishAnswers: ['loss'], level: 'B2' },
+  { russian: 'БЮДЖЕТ', englishAnswers: ['budget'], level: 'B2' },
+  { russian: 'СТРАТЕГИЯ', englishAnswers: ['strategy'], level: 'B2' },
+  { russian: 'КОНКУРЕНЦИЯ', englishAnswers: ['competition'], level: 'B2' },
+  { russian: 'ПАРТНЁРСТВО', englishAnswers: ['partnership'], level: 'B2' },
+  { russian: 'КОНТРАКТ', englishAnswers: ['contract'], level: 'B2' },
+  {
+    russian: 'ПЕРЕГОВОРЫ',
+    englishAnswers: ['negotiations', 'negotiation'],
+    level: 'B2',
+  },
 
-  //   // Complex emotions
-  //   { russian: 'РАЗОЧАРОВАНИЕ', englishAnswers: ['disappointment'], level: 'B2' },
-  //   { russian: 'УДОВЛЕТВОРЕНИЕ', englishAnswers: ['satisfaction'], level: 'B2' },
-  //   {
-  //     russian: 'БЛАГОДАРНОСТЬ',
-  //     englishAnswers: ['gratitude', 'thankfulness'],
-  //     level: 'B2',
-  //   },
-  //   {
-  //     russian: 'СОЧУВСТВИЕ',
-  //     englishAnswers: ['sympathy', 'compassion'],
-  //     level: 'B2',
-  //   },
-  //   { russian: 'ТРЕВОГА', englishAnswers: ['anxiety', 'worry'], level: 'B2' },
-  //   { russian: 'ВДОХНОВЕНИЕ', englishAnswers: ['inspiration'], level: 'B2' },
-  //   { russian: 'ЭНТУЗИАЗМ', englishAnswers: ['enthusiasm'], level: 'B2' },
+  // Complex emotions
+  { russian: 'РАЗОЧАРОВАНИЕ', englishAnswers: ['disappointment'], level: 'B2' },
+  { russian: 'УДОВЛЕТВОРЕНИЕ', englishAnswers: ['satisfaction'], level: 'B2' },
+  {
+    russian: 'БЛАГОДАРНОСТЬ',
+    englishAnswers: ['gratitude', 'thankfulness'],
+    level: 'B2',
+  },
+  {
+    russian: 'СОЧУВСТВИЕ',
+    englishAnswers: ['sympathy', 'compassion'],
+    level: 'B2',
+  },
+  { russian: 'ТРЕВОГА', englishAnswers: ['anxiety', 'worry'], level: 'B2' },
+  { russian: 'ВДОХНОВЕНИЕ', englishAnswers: ['inspiration'], level: 'B2' },
+  { russian: 'ЭНТУЗИАЗМ', englishAnswers: ['enthusiasm'], level: 'B2' },
 
-  //   // Society & Politics
-  //   { russian: 'ДЕМОКРАТИЯ', englishAnswers: ['democracy'], level: 'B2' },
-  //   { russian: 'СВОБОДА', englishAnswers: ['freedom', 'liberty'], level: 'B2' },
-  //   {
-  //     russian: 'СПРАВЕДЛИВОСТЬ',
-  //     englishAnswers: ['justice', 'fairness'],
-  //     level: 'B2',
-  //   },
-  //   { russian: 'РАВЕНСТВО', englishAnswers: ['equality'], level: 'B2' },
-  //   {
-  //     russian: 'ОТВЕТСТВЕННОСТЬ',
-  //     englishAnswers: ['responsibility'],
-  //     level: 'B2',
-  //   },
-  //   { russian: 'ВЛИЯНИЕ', englishAnswers: ['influence', 'impact'], level: 'B2' },
-  //   { russian: 'РЕФОРМА', englishAnswers: ['reform'], level: 'B2' },
+  // Society & Politics
+  { russian: 'ДЕМОКРАТИЯ', englishAnswers: ['democracy'], level: 'B2' },
+  { russian: 'СВОБОДА', englishAnswers: ['freedom', 'liberty'], level: 'B2' },
+  {
+    russian: 'СПРАВЕДЛИВОСТЬ',
+    englishAnswers: ['justice', 'fairness'],
+    level: 'B2',
+  },
+  { russian: 'РАВЕНСТВО', englishAnswers: ['equality'], level: 'B2' },
+  {
+    russian: 'ОТВЕТСТВЕННОСТЬ',
+    englishAnswers: ['responsibility'],
+    level: 'B2',
+  },
+  { russian: 'ВЛИЯНИЕ', englishAnswers: ['influence', 'impact'], level: 'B2' },
+  { russian: 'РЕФОРМА', englishAnswers: ['reform'], level: 'B2' },
 
-  //   // Academic
-  //   { russian: 'АНАЛИЗ', englishAnswers: ['analysis'], level: 'B2' },
-  //   { russian: 'ТЕОРИЯ', englishAnswers: ['theory'], level: 'B2' },
-  //   { russian: 'ПРАКТИКА', englishAnswers: ['practice'], level: 'B2' },
-  //   { russian: 'МЕТОД', englishAnswers: ['method'], level: 'B2' },
-  //   { russian: 'ПОДХОД', englishAnswers: ['approach'], level: 'B2' },
-  //   { russian: 'КОНЦЕПЦИЯ', englishAnswers: ['concept'], level: 'B2' },
-  //   {
-  //     russian: 'КРИТЕРИЙ',
-  //     englishAnswers: ['criterion', 'criteria'],
-  //     level: 'B2',
-  //   },
-  //   { russian: 'ГИПОТЕЗА', englishAnswers: ['hypothesis'], level: 'B2' },
+  // Academic
+  { russian: 'АНАЛИЗ', englishAnswers: ['analysis'], level: 'B2' },
+  { russian: 'ТЕОРИЯ', englishAnswers: ['theory'], level: 'B2' },
+  { russian: 'ПРАКТИКА', englishAnswers: ['practice'], level: 'B2' },
+  { russian: 'МЕТОД', englishAnswers: ['method'], level: 'B2' },
+  { russian: 'ПОДХОД', englishAnswers: ['approach'], level: 'B2' },
+  { russian: 'КОНЦЕПЦИЯ', englishAnswers: ['concept'], level: 'B2' },
+  {
+    russian: 'КРИТЕРИЙ',
+    englishAnswers: ['criterion', 'criteria'],
+    level: 'B2',
+  },
+  { russian: 'ГИПОТЕЗА', englishAnswers: ['hypothesis'], level: 'B2' },
 
-  //   // Personal qualities
-  //   { russian: 'ЧЕСТНОСТЬ', englishAnswers: ['honesty'], level: 'B2' },
-  //   { russian: 'ТЕРПЕНИЕ', englishAnswers: ['patience'], level: 'B2' },
-  //   {
-  //     russian: 'НАСТОЙЧИВОСТЬ',
-  //     englishAnswers: ['persistence', 'perseverance'],
-  //     level: 'B2',
-  //   },
-  //   { russian: 'ГИБКОСТЬ', englishAnswers: ['flexibility'], level: 'B2' },
-  //   { russian: 'НАДЁЖНОСТЬ', englishAnswers: ['reliability'], level: 'B2' },
-  //   { russian: 'НЕЗАВИСИМОСТЬ', englishAnswers: ['independence'], level: 'B2' },
+  // Personal qualities
+  { russian: 'ЧЕСТНОСТЬ', englishAnswers: ['honesty'], level: 'B2' },
+  { russian: 'ТЕРПЕНИЕ', englishAnswers: ['patience'], level: 'B2' },
+  {
+    russian: 'НАСТОЙЧИВОСТЬ',
+    englishAnswers: ['persistence', 'perseverance'],
+    level: 'B2',
+  },
+  { russian: 'ГИБКОСТЬ', englishAnswers: ['flexibility'], level: 'B2' },
+  { russian: 'НАДЁЖНОСТЬ', englishAnswers: ['reliability'], level: 'B2' },
+  { russian: 'НЕЗАВИСИМОСТЬ', englishAnswers: ['independence'], level: 'B2' },
 
-  //   // Communication
-  //   { russian: 'АРГУМЕНТ', englishAnswers: ['argument'], level: 'B2' },
-  //   { russian: 'ДИСКУССИЯ', englishAnswers: ['discussion'], level: 'B2' },
-  //   { russian: 'КОМПРОМИСС', englishAnswers: ['compromise'], level: 'B2' },
-  //   { russian: 'СОГЛАШЕНИЕ', englishAnswers: ['agreement'], level: 'B2' },
+  // Communication
+  { russian: 'АРГУМЕНТ', englishAnswers: ['argument'], level: 'B2' },
+  { russian: 'ДИСКУССИЯ', englishAnswers: ['discussion'], level: 'B2' },
+  { russian: 'КОМПРОМИСС', englishAnswers: ['compromise'], level: 'B2' },
+  { russian: 'СОГЛАШЕНИЕ', englishAnswers: ['agreement'], level: 'B2' },
 ];
 
 // ============================================

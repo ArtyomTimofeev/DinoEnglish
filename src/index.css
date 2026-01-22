@@ -71,3 +71,8 @@ body {
     display: none;
   }
 }
+
+/* CSS fallback for game frame - ensures 9:16 aspect ratio */
+.game-frame {
+  aspect-ratio: 9 / 16;
+}

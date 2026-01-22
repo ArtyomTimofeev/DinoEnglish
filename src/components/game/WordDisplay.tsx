@@ -9,6 +9,7 @@ interface WordDisplayProps {
   isGameActive: boolean;
   isGameComplete: boolean;
   userLevelResult: UserLevelResult | null;
+  scale: number;
 }
 
 const LEVEL_COLORS: Record<string, string> = {
@@ -30,6 +31,7 @@ export const WordDisplay: React.FC<WordDisplayProps> = ({
   isGameActive,
   isGameComplete,
   userLevelResult,
+  scale,
 }) => {
   const getFontSize = (text: string): string => {
     return text.length > 14 ? '1.1rem' : '1.5rem';
@@ -38,6 +40,12 @@ export const WordDisplay: React.FC<WordDisplayProps> = ({
   // После игры — таблица результатов
   if (isGameComplete && userLevelResult) {
     return (
+      <div
+        style={{
+          transform: `scale(${scale})`,
+          transformOrigin: 'center bottom',
+        }}
+      >
       <motion.div
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -123,6 +131,7 @@ export const WordDisplay: React.FC<WordDisplayProps> = ({
           })}
         </div>
       </motion.div>
+      </div>
     );
   }
 
@@ -134,6 +143,12 @@ export const WordDisplay: React.FC<WordDisplayProps> = ({
   const isEnglish = isShowingEnglish && !!englishWord;
 
   return (
+    <div
+      style={{
+        transform: `scale(${scale})`,
+        transformOrigin: 'center bottom',
+      }}
+    >
     <motion.div
       key={word}
       initial={{ opacity: 0, scale: 0.8 }}
@@ -172,5 +187,6 @@ export const WordDisplay: React.FC<WordDisplayProps> = ({
         {displayText}
       </div>
     </motion.div>
+    </div>
   );
 };

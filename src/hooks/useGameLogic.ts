@@ -45,8 +45,11 @@ export const useGameLogic = (): UseGameLogicReturn => {
   const currentWord = words[gameState.currentWordIndex] || WORD_DATASET[0];
 
   const startGame = useCallback(() => {
-    // Загружаем новые слова при старте игры
-    setWords(selectGameWords());
+    // Загружаем новые слова только если предыдущая игра была завершена (Play Again)
+    // При первом запуске используем уже загруженные слова
+    if (gameState.isGameComplete) {
+      setWords(selectGameWords());
+    }
     setGameState({
       ...initialGameState,
       isGameActive: true,
@@ -55,7 +58,7 @@ export const useGameLogic = (): UseGameLogicReturn => {
     setIsCurrentWordComplete(false);
     setIsSkipping(false);
     setCorrectWordIndices(new Set());
-  }, []);
+  }, [gameState.isGameComplete]);
 
   const submitAnswer = useCallback(
     (userAnswer: string): boolean => {

@@ -14,22 +14,41 @@ const DESKTOP_PADDING = 32;
 const MAX_DESKTOP_WIDTH = 450;
 const BASE_DESIGN_WIDTH = 450; // Базовый размер для которого разрабатывался дизайн
 
+// Get actual viewport height accounting for mobile browser chrome
+function getViewportSize() {
+  if (typeof window === 'undefined') {
+    return { width: 0, height: 0 };
+  }
+  // Use visualViewport for accurate mobile dimensions
+  const viewport = window.visualViewport;
+  return {
+    width: viewport?.width ?? window.innerWidth,
+    height: viewport?.height ?? window.innerHeight,
+  };
+}
+
 export function useFrameSize(): FrameSize {
-  const [windowSize, setWindowSize] = useState({
-    width: typeof window !== 'undefined' ? window.innerWidth : 0,
-    height: typeof window !== 'undefined' ? window.innerHeight : 0,
-  });
+  const [windowSize, setWindowSize] = useState(getViewportSize);
 
   useEffect(() => {
     const handleResize = () => {
-      setWindowSize({
-        width: window.innerWidth,
-        height: window.innerHeight,
-      });
+      setWindowSize(getViewportSize());
     };
 
     window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+
+    // Also listen to visualViewport changes for mobile
+    const viewport = window.visualViewport;
+    if (viewport) {
+      viewport.addEventListener('resize', handleResize);
+    }
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      if (viewport) {
+        viewport.removeEventListener('resize', handleResize);
+      }
+    };
   }, []);
 
   return useMemo(() => {

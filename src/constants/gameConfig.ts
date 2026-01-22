@@ -14,10 +14,19 @@ export const SPEECH_CONFIG = {
   maxAlternatives: 1,
 };
 
+// Detect mobile device
+const isMobile = typeof window !== 'undefined' && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
 export const CAMERA_CONFIG = {
   video: {
     facingMode: 'user',
-    // Let browser choose optimal resolution to avoid cropping on different devices
+    // Use different constraints for mobile vs desktop
+    ...(isMobile
+      ? {} // Let mobile browsers choose optimal resolution
+      : {
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+        }),
   },
 };
 

@@ -6,9 +6,12 @@ interface UseSpeechRecognitionReturn {
   transcript: string;
   interimTranscript: string;
   isListening: boolean;
+  isAcceptingInput: boolean;
   error: string | null;
-  startListening: () => void;
-  stopListening: () => void;
+  startSession: () => void;
+  endSession: () => void;
+  pauseInput: () => void;
+  resumeInput: () => void;
   resetTranscript: () => void;
   isSupported: boolean;
 }
@@ -17,12 +20,13 @@ export const useSpeechRecognition = (): UseSpeechRecognitionReturn => {
   const [transcript, setTranscript] = useState('');
   const [interimTranscript, setInterimTranscript] = useState('');
   const [isListening, setIsListening] = useState(false);
+  const [isAcceptingInput, setIsAcceptingInput] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
   const recognitionRef = useRef<any>(null);
   const isListeningRef = useRef(false);
-  const shouldBeListeningRef = useRef(false); // Track intent to listen
-  const restartAttemptsRef = useRef(0); // Track restart attempts to prevent infinite loop
-  const maxRestartAttempts = 3;
+  const sessionActiveRef = useRef(false);
+  const isAcceptingInputRef = useRef(false);
 
   const isSupported = 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
 
@@ -44,12 +48,13 @@ export const useSpeechRecognition = (): UseSpeechRecognitionReturn => {
       isListeningRef.current = true;
       setIsListening(true);
       setError(null);
-      // Don't reset counter here - onstart fires even when immediately aborted
     };
 
     recognition.onresult = (event: any) => {
-      // Reset restart attempts on successful result
-      restartAttemptsRef.current = 0;
+      // Игнорируем результаты если не принимаем ввод
+      if (!isAcceptingInputRef.current) {
+        return;
+      }
 
       let interimText = '';
       let finalText = '';
@@ -87,15 +92,14 @@ export const useSpeechRecognition = (): UseSpeechRecognitionReturn => {
       isListeningRef.current = false;
       setIsListening(false);
 
-      // Auto-restart if we should still be listening (with attempt limit)
-      if (shouldBeListeningRef.current && restartAttemptsRef.current < maxRestartAttempts) {
-        restartAttemptsRef.current += 1;
+      // Авто-рестарт только если сессия активна (игра не закончена)
+      if (sessionActiveRef.current) {
         setTimeout(() => {
-          if (shouldBeListeningRef.current && recognitionRef.current) {
+          if (sessionActiveRef.current && recognitionRef.current) {
             try {
               recognitionRef.current.start();
             } catch {
-              // Ignore auto-restart errors
+              // Игнорируем ошибки перезапуска
             }
           }
         }, 100);
@@ -105,10 +109,10 @@ export const useSpeechRecognition = (): UseSpeechRecognitionReturn => {
     recognitionRef.current = recognition;
 
     return () => {
-      shouldBeListeningRef.current = false; // Prevent auto-restart after cleanup
+      sessionActiveRef.current = false;
       if (recognitionRef.current) {
         try {
-          recognitionRef.current.abort(); // Use abort instead of stop
+          recognitionRef.current.abort();
         } catch {
           // Ignore errors on cleanup
         }
@@ -116,35 +120,26 @@ export const useSpeechRecognition = (): UseSpeechRecognitionReturn => {
     };
   }, [isSupported]);
 
-  const startListening = useCallback(() => {
-    shouldBeListeningRef.current = true;
-    restartAttemptsRef.current = 0;
+  const startSession = useCallback(() => {
+    if (!recognitionRef.current || sessionActiveRef.current) return;
 
-    if (!recognitionRef.current) return;
-
-    // Если уже слушаем, сначала остановим и перезапустим
-    if (isListeningRef.current) {
-      try {
-        recognitionRef.current.stop();
-      } catch {
-        // Ignore
-      }
-      // onend callback перезапустит recognition через auto-restart
-      return;
-    }
+    sessionActiveRef.current = true;
+    setTranscript('');
+    setInterimTranscript('');
+    setError(null);
 
     try {
-      setTranscript('');
-      setInterimTranscript('');
-      setError(null);
       recognitionRef.current.start();
     } catch {
       // Ignore start errors
     }
   }, []);
 
-  const stopListening = useCallback(() => {
-    shouldBeListeningRef.current = false;
+  const endSession = useCallback(() => {
+    sessionActiveRef.current = false;
+    isAcceptingInputRef.current = false;
+    setIsAcceptingInput(false);
+
     if (recognitionRef.current && isListeningRef.current) {
       try {
         recognitionRef.current.stop();
@@ -152,6 +147,18 @@ export const useSpeechRecognition = (): UseSpeechRecognitionReturn => {
         // Already stopped, ignore
       }
     }
+  }, []);
+
+  const pauseInput = useCallback(() => {
+    isAcceptingInputRef.current = false;
+    setIsAcceptingInput(false);
+  }, []);
+
+  const resumeInput = useCallback(() => {
+    setTranscript('');
+    setInterimTranscript('');
+    isAcceptingInputRef.current = true;
+    setIsAcceptingInput(true);
   }, []);
 
   const resetTranscript = useCallback(() => {
@@ -163,9 +170,12 @@ export const useSpeechRecognition = (): UseSpeechRecognitionReturn => {
     transcript,
     interimTranscript,
     isListening,
+    isAcceptingInput,
     error,
-    startListening,
-    stopListening,
+    startSession,
+    endSession,
+    pauseInput,
+    resumeInput,
     resetTranscript,
     isSupported,
   };

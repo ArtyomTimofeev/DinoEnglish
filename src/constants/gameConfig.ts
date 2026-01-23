@@ -14,6 +14,11 @@ export const SPEECH_CONFIG = {
   maxAlternatives: 1,
 };
 
+export const SPEECH_PROTECTION_CONFIG = {
+  soundProtectionDelay: 300, // Delay after sound before resuming input (ms)
+  sessionStartDelay: 500, // Delay before accepting input after session start (ms)
+};
+
 // Detect mobile device
 const isMobile = typeof window !== 'undefined' && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 

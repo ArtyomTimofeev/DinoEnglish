@@ -8,7 +8,7 @@ import { useGameLogic } from '@/hooks/useGameLogic';
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
 import { useAudio } from '@/hooks/useAudio';
 import { useVibration } from '@/hooks/useVibration';
-import { GAME_CONFIG } from '@/constants/gameConfig';
+import { GAME_CONFIG, SPEECH_PROTECTION_CONFIG } from '@/constants/gameConfig';
 import { validateAnswer, findMatchedAnswer } from '@/utils/validation';
 import { useFrameSize } from '@/hooks/useFrameSize';
 
@@ -28,8 +28,10 @@ export const GameScreen: React.FC = () => {
   const {
     transcript,
     interimTranscript,
-    startListening,
-    stopListening,
+    startSession,
+    endSession,
+    pauseInput,
+    resumeInput,
     resetTranscript,
   } = useSpeechRecognition();
   const { playSuccess, playError, playSkip } = useAudio();
@@ -55,6 +57,16 @@ export const GameScreen: React.FC = () => {
     submitAnswerRef.current = submitAnswer;
   }, [submitAnswer]);
 
+  // Handle game start - start speech session once
+  const handleStartGame = useCallback(() => {
+    startGame();
+    startSession();
+    // Delay before accepting input to allow initialization
+    setTimeout(() => {
+      resumeInput();
+    }, SPEECH_PROTECTION_CONFIG.sessionStartDelay);
+  }, [startGame, startSession, resumeInput]);
+
   // Handle answer submission
   const handleAnswer = useCallback(
     (answer: string) => {
@@ -79,10 +91,12 @@ export const GameScreen: React.FC = () => {
       setShowFlash(true);
 
       if (isCorrect) {
+        // Pause input to prevent hearing game sounds
+        pauseInput();
         playSuccess();
         vibrateSuccess();
 
-        // Показать тот вариант ответа, который произнёс пользователь
+        // Show the answer variant that user spoke
         setEnglishToShow(findMatchedAnswer(answer, currentWordRef.current));
         setIsShowingEnglish(true);
 
@@ -91,17 +105,16 @@ export const GameScreen: React.FC = () => {
         }, 500);
       } else {
         isProcessingErrorRef.current = true;
+        pauseInput();
         playError();
         vibrateError();
 
-        // Reset and restart listening for retry
+        // Reset and resume input after sound protection delay
         setTimeout(() => {
           setShowFlash(false);
-          // НЕ сбрасываем lastProcessedTranscriptRef - чтобы то же слово не сабмитилось повторно
-          // Сбрасываем только lastInterimRef для нового interim tracking
           lastInterimRef.current = '';
           resetTranscript();
-          startListening();
+          resumeInput();
           isProcessingErrorRef.current = false;
         }, 500);
       }
@@ -111,66 +124,44 @@ export const GameScreen: React.FC = () => {
       playError,
       vibrateSuccess,
       vibrateError,
-      stopListening,
+      pauseInput,
+      resumeInput,
       resetTranscript,
-      startListening,
     ]
   );
 
   // Callback for when dino advances to next word
   const handleWordAdvance = useCallback(() => {
-    // Сбросить показ английского слова перед переходом
+    // Reset showing english word before transition
     setIsShowingEnglish(false);
     setEnglishToShow('');
 
     // Reset tracking to allow new answers
     lastProcessedTranscriptRef.current = '';
     lastInterimRef.current = '';
-    // Reset transcript BEFORE advancing to prevent old answer from triggering on new word
     resetTranscript();
     nextWord();
-    // Restart listening after word advances
+
+    // Resume input after sound protection delay
     setTimeout(() => {
-      startListening();
-    }, 100);
-  }, [nextWord, resetTranscript, startListening]);
+      resumeInput();
+    }, SPEECH_PROTECTION_CONFIG.soundProtectionDelay);
+  }, [nextWord, resetTranscript, resumeInput]);
 
   // Callback for when skip button is pressed
   const handleSkip = useCallback(() => {
-    stopListening();
+    pauseInput();
     resetTranscript();
     playSkip();
     lastProcessedTranscriptRef.current = '';
     lastInterimRef.current = '';
 
-    // Показать правильный ответ
+    // Show correct answer
     setEnglishToShow(currentWordRef.current.englishAnswers[0]);
     setIsShowingEnglish(true);
 
     skipWord();
-  }, [stopListening, resetTranscript, playSkip, skipWord]);
-
-  // Start listening when game is active and word is not complete
-  useEffect(() => {
-    if (
-      gameState.isGameActive &&
-      !gameState.isGameComplete &&
-      !isCurrentWordComplete
-    ) {
-      // Delay start to allow camera and other resources to initialize
-      const delay = gameState.currentWordIndex === 0 ? 500 : 0;
-      const timeoutId = setTimeout(() => {
-        resetTranscript();
-        startListening();
-      }, delay);
-      return () => clearTimeout(timeoutId);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    gameState.currentWordIndex,
-    gameState.isGameActive,
-    isCurrentWordComplete,
-  ]);
+  }, [pauseInput, resetTranscript, playSkip, skipWord]);
 
   // Handle transcript changes (both final and interim)
   // Key insight: submit FIRST WORD immediately when it's ready, don't wait for full phrase
@@ -225,10 +216,10 @@ export const GameScreen: React.FC = () => {
     handleAnswer,
   ]);
 
-  // Handle game completion - stop listening
+  // Handle game completion - end speech session
   useEffect(() => {
     if (gameState.isGameComplete) {
-      stopListening();
+      endSession();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameState.isGameComplete]);
@@ -307,7 +298,7 @@ export const GameScreen: React.FC = () => {
           isGameStarted={gameState.isGameActive}
           onWordAdvance={handleWordAdvance}
           onSkip={handleSkip}
-          onStartGame={startGame}
+          onStartGame={handleStartGame}
           scale={scale}
         />
       </div>

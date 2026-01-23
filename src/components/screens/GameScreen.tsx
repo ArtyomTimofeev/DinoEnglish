@@ -34,8 +34,8 @@ export const GameScreen: React.FC = () => {
     resumeInput,
     resetTranscript,
   } = useSpeechRecognition();
-  const { playSuccess, playError, playSkip } = useAudio();
-  const { vibrateSuccess, vibrateError } = useVibration();
+  const { playSuccess, playSkip } = useAudio();
+  const { vibrateSuccess } = useVibration();
 
   const [showFlash, setShowFlash] = useState(false);
   const [flashType, setFlashType] = useState<'success' | 'error'>('success');
@@ -75,22 +75,17 @@ export const GameScreen: React.FC = () => {
       console.log(`🎤 Heard: "${answer}" → ❌ wrong`);
 
       isProcessingErrorRef.current = true;
-      setFlashType('error');
-      setShowFlash(true);
       pauseInput();
-      playError();
-      vibrateError();
 
-      // Reset and resume input after sound protection delay
+      // Короткая пауза для сброса транскрипции без негативной обратной связи
       setTimeout(() => {
-        setShowFlash(false);
         lastInterimRef.current = '';
         resetTranscript();
         resumeInput();
         isProcessingErrorRef.current = false;
-      }, 500);
+      }, 100);
     },
-    [pauseInput, playError, vibrateError, resetTranscript, resumeInput]
+    [pauseInput, resetTranscript, resumeInput]
   );
 
   // Handle answer submission with debounce for all answers

@@ -39,7 +39,10 @@ export const Road3D: React.FC<Road3DProps> = ({
         height: '15%',
         overflow: 'hidden',
         zIndex: 1,
-      }}
+        // GPU-ускорение для предотвращения мерцания на мобильных
+        perspective: 1000,
+        WebkitPerspective: 1000,
+      } as React.CSSProperties}
     >
       {/* Three road images side by side for seamless scrolling with offset */}
       <div
@@ -51,17 +54,22 @@ export const Road3D: React.FC<Road3DProps> = ({
           animation: isMoving ? `roadScroll-${animationKey} 8s linear infinite` : 'none',
           // При отскоке добавляем смещение через transform
           // Когда игра не запущена - сдвигаем дорогу на начальную позицию
+          // Используем translate3d для GPU-ускорения
           transform:
             bounceOffset > 0
-              ? `translateX(${bounceOffset}%)`
+              ? `translate3d(${bounceOffset}%, 0, 0)`
               : !isMoving
-              ? `translateX(${actualOffset}px)`
-              : undefined,
+              ? `translate3d(${actualOffset}px, 0, 0)`
+              : 'translate3d(0, 0, 0)',
           transition:
             bounceOffset > 0
               ? 'transform 0.25s ease-out'
               : 'transform 0.3s ease-in-out',
-        }}
+          // GPU-ускорение для предотвращения мерцания
+          willChange: 'transform',
+          backfaceVisibility: 'hidden',
+          WebkitBackfaceVisibility: 'hidden',
+        } as React.CSSProperties}
       >
         <img
           src={`${base}sprites/road.png`}
@@ -114,10 +122,10 @@ export const Road3D: React.FC<Road3DProps> = ({
         {`
           @keyframes roadScroll-${animationKey} {
             0% {
-              transform: translateX(${actualOffset}px);
+              transform: translate3d(${actualOffset}px, 0, 0);
             }
             100% {
-              transform: translateX(${actualOffset - roadWidth}px);
+              transform: translate3d(${actualOffset - roadWidth}px, 0, 0);
             }
           }
         `}

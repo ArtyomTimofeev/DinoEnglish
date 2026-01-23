@@ -79,7 +79,8 @@ export const GameScreen: React.FC = () => {
       if (isCorrect) {
         playSuccess();
         vibrateSuccess();
-        stopListening();
+        // Микрофон не останавливаем - isCurrentWordComplete защищает от повторной обработки
+        // Остановка микрофона на iOS вызывает системный звук
 
         // Показать тот вариант ответа, который произнёс пользователь
         setEnglishToShow(findMatchedAnswer(answer, currentWordRef.current));

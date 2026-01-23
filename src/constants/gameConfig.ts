@@ -17,6 +17,7 @@ export const SPEECH_CONFIG = {
 export const SPEECH_PROTECTION_CONFIG = {
   soundProtectionDelay: 300, // Delay after sound before resuming input (ms)
   sessionStartDelay: 500, // Delay before accepting input after session start (ms)
+  wrongAnswerDebounce: 400, // Delay before showing error - allows word fragments to combine (ms)
 };
 
 // Detect mobile device

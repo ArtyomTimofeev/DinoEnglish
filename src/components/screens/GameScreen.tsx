@@ -48,6 +48,7 @@ export const GameScreen: React.FC = () => {
   const lastProcessedTranscriptRef = useRef('');
   const lastInterimRef = useRef('');
   const isProcessingErrorRef = useRef(false);
+  const wrongAnswerTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     currentWordRef.current = currentWord;
@@ -67,9 +68,40 @@ export const GameScreen: React.FC = () => {
     }, SPEECH_PROTECTION_CONFIG.sessionStartDelay);
   }, [startGame, startSession, resumeInput]);
 
-  // Handle answer submission
+  // Show error feedback (extracted to avoid duplication)
+  const showErrorFeedback = useCallback(
+    (answer: string) => {
+      lastProcessedTranscriptRef.current = answer;
+      console.log(`🎤 Heard: "${answer}" → ❌ wrong`);
+
+      isProcessingErrorRef.current = true;
+      setFlashType('error');
+      setShowFlash(true);
+      pauseInput();
+      playError();
+      vibrateError();
+
+      // Reset and resume input after sound protection delay
+      setTimeout(() => {
+        setShowFlash(false);
+        lastInterimRef.current = '';
+        resetTranscript();
+        resumeInput();
+        isProcessingErrorRef.current = false;
+      }, 500);
+    },
+    [pauseInput, playError, vibrateError, resetTranscript, resumeInput]
+  );
+
+  // Handle answer submission with debounce for all answers
   const handleAnswer = useCallback(
     (answer: string) => {
+      // Cancel any pending answer timeout
+      if (wrongAnswerTimeoutRef.current) {
+        clearTimeout(wrongAnswerTimeoutRef.current);
+        wrongAnswerTimeoutRef.current = null;
+      }
+
       // Prevent processing the same transcript twice
       if (answer === lastProcessedTranscriptRef.current) {
         return;
@@ -80,58 +112,58 @@ export const GameScreen: React.FC = () => {
         return;
       }
 
-      lastProcessedTranscriptRef.current = answer;
+      // All answers go through debounce - wait for word to complete
+      wrongAnswerTimeoutRef.current = setTimeout(() => {
+        // Check again in case answer was already processed
+        if (answer === lastProcessedTranscriptRef.current) {
+          wrongAnswerTimeoutRef.current = null;
+          return;
+        }
 
-      const isCorrect = submitAnswerRef.current(answer);
-      console.log(
-        `🎤 Heard: "${answer}" → ${isCorrect ? '✅ correct' : '❌ wrong'}`
-      );
+        // Check if answer is correct
+        const isCorrect = validateAnswer(answer, currentWordRef.current);
 
-      setFlashType(isCorrect ? 'success' : 'error');
-      setShowFlash(true);
+        if (isCorrect) {
+          lastProcessedTranscriptRef.current = answer;
+          submitAnswerRef.current(answer);
+          console.log(`🎤 Heard: "${answer}" → ✅ correct`);
 
-      if (isCorrect) {
-        // Pause input to prevent hearing game sounds
-        pauseInput();
-        playSuccess();
-        vibrateSuccess();
+          setFlashType('success');
+          setShowFlash(true);
+          pauseInput();
+          playSuccess();
+          vibrateSuccess();
 
-        // Show the answer variant that user spoke
-        setEnglishToShow(findMatchedAnswer(answer, currentWordRef.current));
-        setIsShowingEnglish(true);
+          // Show the answer variant that user spoke
+          setEnglishToShow(findMatchedAnswer(answer, currentWordRef.current));
+          setIsShowingEnglish(true);
 
-        setTimeout(() => {
-          setShowFlash(false);
-        }, 500);
-      } else {
-        isProcessingErrorRef.current = true;
-        pauseInput();
-        playError();
-        vibrateError();
+          setTimeout(() => {
+            setShowFlash(false);
+          }, 500);
+        } else {
+          showErrorFeedback(answer);
+        }
 
-        // Reset and resume input after sound protection delay
-        setTimeout(() => {
-          setShowFlash(false);
-          lastInterimRef.current = '';
-          resetTranscript();
-          resumeInput();
-          isProcessingErrorRef.current = false;
-        }, 500);
-      }
+        wrongAnswerTimeoutRef.current = null;
+      }, SPEECH_PROTECTION_CONFIG.wrongAnswerDebounce);
     },
     [
       playSuccess,
-      playError,
       vibrateSuccess,
-      vibrateError,
       pauseInput,
-      resumeInput,
-      resetTranscript,
+      showErrorFeedback,
     ]
   );
 
   // Callback for when dino advances to next word
   const handleWordAdvance = useCallback(() => {
+    // Cancel any pending wrong answer timeout
+    if (wrongAnswerTimeoutRef.current) {
+      clearTimeout(wrongAnswerTimeoutRef.current);
+      wrongAnswerTimeoutRef.current = null;
+    }
+
     // Reset showing english word before transition
     setIsShowingEnglish(false);
     setEnglishToShow('');
@@ -150,6 +182,12 @@ export const GameScreen: React.FC = () => {
 
   // Callback for when skip button is pressed
   const handleSkip = useCallback(() => {
+    // Cancel any pending wrong answer timeout
+    if (wrongAnswerTimeoutRef.current) {
+      clearTimeout(wrongAnswerTimeoutRef.current);
+      wrongAnswerTimeoutRef.current = null;
+    }
+
     pauseInput();
     resetTranscript();
     playSkip();

@@ -71,7 +71,9 @@ export const GameScreen: React.FC = () => {
       lastProcessedTranscriptRef.current = answer;
 
       const isCorrect = submitAnswerRef.current(answer);
-      console.log(`🎤 Heard: "${answer}" → ${isCorrect ? '✅ correct' : '❌ wrong'}`);
+      console.log(
+        `🎤 Heard: "${answer}" → ${isCorrect ? '✅ correct' : '❌ wrong'}`
+      );
 
       setFlashType(isCorrect ? 'success' : 'error');
       setShowFlash(true);
@@ -79,8 +81,6 @@ export const GameScreen: React.FC = () => {
       if (isCorrect) {
         playSuccess();
         vibrateSuccess();
-        // Микрофон не останавливаем - isCurrentWordComplete защищает от повторной обработки
-        // Остановка микрофона на iOS вызывает системный звук
 
         // Показать тот вариант ответа, который произнёс пользователь
         setEnglishToShow(findMatchedAnswer(answer, currentWordRef.current));
